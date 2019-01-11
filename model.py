@@ -25,7 +25,7 @@ class Autoencoder_model(object):
                                                se_words=self.args.start_end)
 
         word_HPs = [len(self.args.vocab.w2i), self.args.word_dim, self.args.word_pretrained, self.args.word_drop_rate,
-                    self.args.word_zero_padding, self.args.word_nn_out_dim]  # self.args.word_nn_attention]
+                    self.args.word_zero_padding, self.args.word_nn_out_dim]
 
         self.model = Autoencoder(HPs=word_HPs).to(self.device)
 
@@ -69,10 +69,8 @@ class Autoencoder_model(object):
             train_loss.append(batch_loss.item())
 
             batch_loss.backward()
-
             if clip_rate > 0:
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), clip_rate)
-
             self.optimizer.step()
             prog.update(i + 1, [("Train loss", batch_loss.item())])
 
@@ -170,25 +168,17 @@ if __name__ == '__main__':
 
     argparser.add_argument("--word_nn_out_dim", type=int, default=16, help="Word-level neural network dimension")
 
-    argparser.add_argument("--word_nn_attention", action='store_true', default=False,
-                           help="Word-level NN attentional mechanism flag")
-
-    argparser.add_argument("--final_drop_rate", type=float, default=0.5, help="Dropout rate at the last layer")
-
-    argparser.add_argument("--patience", type=int, default=2,
-                           help="Early stopping if no improvement after patience epoches")
-
     argparser.add_argument("--optimizer", type=str, default="ADAM", help="Optimized method (adagrad, sgd, ...)")
 
     argparser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
 
     argparser.add_argument("--decay_rate", type=float, default=0.04, help="Decay rate")
 
-    argparser.add_argument("--max_epochs", type=int, default=4, help="Maximum trained epochs")
+    argparser.add_argument("--max_epochs", type=int, default=2, help="Maximum trained epochs")
 
     argparser.add_argument("--batch_size", type=int, default=32, help="Mini-batch size")
 
-    argparser.add_argument("--neg_samples", type=int, default=8, help="Number of negative samples (< batch_size)")
+    argparser.add_argument("--neg_samples", type=int, default=8, help="Number of negative samples")
 
     argparser.add_argument('--clip', default=4, type=int, help='Clipping value')
 
