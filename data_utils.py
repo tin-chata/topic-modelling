@@ -62,9 +62,12 @@ class Vocab(object):
         self.wl = wl if self.wl is None else min(wl, self.wl)
         self.nodocs = count
 
-        for wd in self.idf:
-            self.idf[wd] = np.log(self.nodocs / self.idf[wd])
-        self.writeidf(idf_file)
+        if os.path.exists(idf_file):
+            self.loadidf(idf_file)
+        else:
+            for wd in self.idf:
+                self.idf[wd] = np.log(self.nodocs / self.idf[wd])
+            self.writeidf(idf_file)
 
         print("Extracting vocabulary: %d total input samples" % count)
         print("\t%d total words" % sum(self.wcnt.values()))
@@ -76,6 +79,12 @@ class Vocab(object):
             f.write("%d %d\n" % (len(self.idf), 1))
             for wd in self.idf:
                 f.write("%s %f\n" % (wd, self.idf[wd]))
+
+    def loadidf(self, fname):
+        with open(fname, "r") as f:
+            for line in f:
+                wd, v = line.strip().split()
+                self.idf[wd] = float(v)
 
     @staticmethod
     def wd2idx(vocab_words=None, unk_words=True, se_words=False):

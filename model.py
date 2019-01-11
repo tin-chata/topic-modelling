@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
     argparser.add_argument("--use_cuda", action='store_true', default=False, help="GPUs Flag (default True)")
 
-    argparser.add_argument("--sent_limit", type=int, default=100000, help="Limit the number of lines to train")
+    argparser.add_argument("--sent_limit", type=int, default=10000, help="Limit the number of lines to train")
 
     args = argparser.parse_args()
 
