@@ -1,7 +1,8 @@
+# git rm -r --cached .
+
 # Ignore data folders
-data/data/*
-data/*
-trained_model/*
+backup/
+extracted_data/
 
 # Ignore MacOS folders and files
 .idea/

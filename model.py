@@ -108,9 +108,10 @@ class Autoencoder_model(object):
         id2topic = {}
         for i in range(enc_emb.shape[0]):
             id2topic[i] = "topic_%d" % i
-        Embeddings.save_embs(id2topic, dec_emb.transpose(), self.args.dtopic_emb_file)
-        Embeddings.save_embs(id2topic, enc_emb, self.args.etopic_emb_file)
-        Embeddings.save_embs(self.args.vocab.i2w, word_emb, self.args.tuned_word_emb_file)
+
+        Embeddings.save_embs(id2topic, dec_emb.transpose(), os.path.join(args.model_dir,self.args.dtopic_emb_file))
+        Embeddings.save_embs(id2topic, enc_emb, os.path.join(args.model_dir,self.args.etopic_emb_file))
+        Embeddings.save_embs(self.args.vocab.i2w, word_emb, os.path.join(args.model_dir,self.args.tuned_word_emb_file))
         return
 
     @staticmethod
@@ -119,7 +120,9 @@ class Autoencoder_model(object):
         if not os.path.exists(args.model_dir):
             os.mkdir(args.model_dir)
         vocab = Vocab(wl_th=args.wl_th, wcutoff=args.wcutoff)
-        vocab.build(fname=args.train_file, idf_file=args.idf_file, firstline=False, limit=args.sent_limit)
+
+        idf_file = os.path.join(args.model_dir, args.idf_file)
+        vocab.build(fname=args.train_file, idf_file=idf_file, firstline=False, limit=args.sent_limit)
         args.vocab = vocab
         if len(args.word_emb_file) != 0:
             scale = np.sqrt(3.0 / args.word_dim)
@@ -140,13 +143,13 @@ if __name__ == '__main__':
                            default="/media/data/restaurants/yelp_dataset/processed/extracted_rev/yelp_data_rev.pro.txt")
 
     argparser.add_argument("--tuned_word_emb_file", type=str, help="Word embedding file after fine-tuning",
-                           default="./data/word_emb.txt")
+                           default="word_emb.txt")
 
     argparser.add_argument("--dtopic_emb_file", type=str, help="Topic embedding file after fine-tuning",
-                           default="./data/dtopic_emb.txt")
+                           default="dtopic_emb.txt")
 
     argparser.add_argument("--etopic_emb_file", type=str, help="Inverse topic embedding file after fine-tuning",
-                           default="./data/etopic_emb.txt")
+                           default="etopic_emb.txt")
 
     argparser.add_argument("--wl_th", type=int, default=None, help="Word threshold")
 
@@ -182,7 +185,7 @@ if __name__ == '__main__':
 
     argparser.add_argument('--clip', default=5, type=int, help='Clipping value')
 
-    argparser.add_argument('--model_dir', help='Model directory', default="./data/", type=str)
+    argparser.add_argument('--model_dir', help='Model directory', default="./extracted_data/", type=str)
 
     argparser.add_argument('--model_file', help='Trained model filename', default="tpmd.m", type=str)
 
