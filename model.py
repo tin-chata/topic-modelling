@@ -158,7 +158,7 @@ if __name__ == '__main__':
 
     argparser.add_argument("--word_emb_file", type=str, help="Word embedding file", default="")
 
-    argparser.add_argument("--word_dim", type=int, default=16, help="Word embedding size")
+    argparser.add_argument("--word_dim", type=int, default=100, help="Word embedding size")
 
     argparser.add_argument("--word_drop_rate", type=float, default=0.5,
                            help="Dropout rate at word-level embedding")
@@ -166,27 +166,27 @@ if __name__ == '__main__':
     argparser.add_argument("--word_zero_padding", action='store_true', default=False,
                            help="Flag to set all padding tokens to zero during training at word level")
 
-    argparser.add_argument("--word_nn_out_dim", type=int, default=16, help="Word-level neural network dimension")
+    argparser.add_argument("--word_nn_out_dim", type=int, default=15, help="Word-level neural network dimension")
 
     argparser.add_argument("--optimizer", type=str, default="ADAM", help="Optimized method (adagrad, sgd, ...)")
 
-    argparser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
+    argparser.add_argument("--lr", type=float, default=0.002, help="Learning rate")
 
-    argparser.add_argument("--decay_rate", type=float, default=0.04, help="Decay rate")
+    argparser.add_argument("--decay_rate", type=float, default=0.05, help="Decay rate")
 
-    argparser.add_argument("--max_epochs", type=int, default=2, help="Maximum trained epochs")
+    argparser.add_argument("--max_epochs", type=int, default=64, help="Maximum trained epochs")
 
-    argparser.add_argument("--batch_size", type=int, default=32, help="Mini-batch size")
+    argparser.add_argument("--batch_size", type=int, default=16, help="Mini-batch size")
 
     argparser.add_argument("--neg_samples", type=int, default=8, help="Number of negative samples")
 
-    argparser.add_argument('--clip', default=4, type=int, help='Clipping value')
+    argparser.add_argument('--clip', default=5, type=int, help='Clipping value')
 
-    argparser.add_argument('--model_dir', help='Model directory', default="./trained_model/", type=str)
+    argparser.add_argument('--model_dir', help='Model directory', default="./data/", type=str)
 
-    argparser.add_argument('--model_file', help='Trained model filename', default="test.m", type=str)
+    argparser.add_argument('--model_file', help='Trained model filename', default="tpmd.m", type=str)
 
-    argparser.add_argument('--model_args', help='Trained argument filename', default="test.args", type=str)
+    argparser.add_argument('--model_args', help='Trained argument filename', default="tpmd.args", type=str)
 
     argparser.add_argument("--use_cuda", action='store_true', default=False, help="GPUs Flag (default True)")
 
