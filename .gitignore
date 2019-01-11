@@ -1,0 +1,9 @@
+# Ignore data folders
+data/data/
+data/
+trained_model/
+
+# Ignore MacOS folders and files
+.idea/
+__pycache__/
+.DS_Store
