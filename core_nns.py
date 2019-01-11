@@ -25,6 +25,8 @@ class Embs(nn.Module):
             self.embeddings.weight.data.copy_(torch.from_numpy(pre_embs))
         else:
             self.embeddings.weight.data.copy_(torch.from_numpy(self.random_embedding(size, dim)))
+
+        # self.embeddings.weight.requires_grad = False # fix word embeddings
         self.drop = nn.Dropout(drop_rate)
 
     def get_embs(self, inputs, auxiliary_embs=None):
@@ -211,4 +213,3 @@ if __name__ == "__main__":
     id2topic = {}
     for i in range(enc_emb.shape[0]):
         id2topic[i] = "topic_%d" % i
-

@@ -6,6 +6,7 @@ Created on Sat Mar 10 17:31:21 2018
 @author: dtvo
 """
 import time
+import os
 import gzip
 import sys
 import pickle
@@ -60,6 +61,9 @@ class Vocab(object):
         self.i2w = dict([(x, y) for x, y in enumerate(wlst)])
         self.wl = wl if self.wl is None else min(wl, self.wl)
         self.nodocs = count
+
+        for wd in self.idf:
+            self.idf[wd] = np.log(self.nodocs / self.idf[wd])
         self.writeidf(idf_file)
 
         print("Extracting vocabulary: %d total input samples" % count)
@@ -71,9 +75,7 @@ class Vocab(object):
         with open(fname, "w") as f:
             f.write("%d %d\n" % (len(self.idf), 1))
             for wd in self.idf:
-                v = np.log(self.nodocs / self.idf[wd])
-                self.idf[wd] = v
-                f.write("%s %f\n" % (wd, v))
+                f.write("%s %f\n" % (wd, self.idf[wd]))
 
     @staticmethod
     def wd2idx(vocab_words=None, unk_words=True, se_words=False):
