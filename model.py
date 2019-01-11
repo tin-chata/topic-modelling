@@ -157,7 +157,7 @@ if __name__ == '__main__':
 
     argparser.add_argument("--start_end", action='store_true', default=False, help="Start-end padding flag")
 
-    argparser.add_argument("--idf_file", type=str, help="tfidf file", default="./data/idf.txt")
+    argparser.add_argument("--idf_file", type=str, help="tfidf file", default="idf.txt")
 
     argparser.add_argument("--word_emb_file", type=str, help="Word embedding file", default="")
 
