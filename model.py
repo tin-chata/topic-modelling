@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
     argparser.add_argument("--wl_th", type=int, default=None, help="Word threshold")
 
-    argparser.add_argument("--wcutoff", type=int, default=5, help="Prune words occurring <= wcutoff")
+    argparser.add_argument("--wcutoff", type=int, default=10, help="Prune words occurring <= wcutoff")
 
     argparser.add_argument("--start_end", action='store_true', default=False, help="Start-end padding flag")
 
@@ -171,7 +171,7 @@ if __name__ == '__main__':
 
     argparser.add_argument("--grad_flag", action='store_false', default=True, help="Gradient emb flag (default True)")
 
-    argparser.add_argument("--word_nn_out_dim", type=int, default=15, help="Word-level neural network dimension")
+    argparser.add_argument("--word_nn_out_dim", type=int, default=10, help="Word-level neural network dimension")
 
     argparser.add_argument("--optimizer", type=str, default="ADAM", help="Optimized method (adagrad, sgd, ...)")
 
@@ -181,9 +181,9 @@ if __name__ == '__main__':
 
     argparser.add_argument("--max_epochs", type=int, default=64, help="Maximum trained epochs")
 
-    argparser.add_argument("--batch_size", type=int, default=16, help="Mini-batch size")
+    argparser.add_argument("--batch_size", type=int, default=32, help="Mini-batch size")
 
-    argparser.add_argument("--neg_samples", type=int, default=8, help="Number of negative samples")
+    argparser.add_argument("--neg_samples", type=int, default=16, help="Number of negative samples")
 
     argparser.add_argument('--clip', default=5, type=int, help='Clipping value')
 
@@ -205,4 +205,4 @@ if __name__ == '__main__':
 
     topic_encoder.train()
 
-    # os.system("sudo shutdown +1")
+    os.system("sudo shutdown +1")

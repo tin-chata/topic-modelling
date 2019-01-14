@@ -164,10 +164,10 @@ class Txtfile(object):
 
     @staticmethod
     def process_sent(sent):
-        sent = sent.strip().split()
         # TODO: add a text-preprocessor at both word-level and character-level to improve performance
         sent = re.sub('[^a-zA-Z ]+', '', sent)
         sent = sent.lower()
+        sent = sent.strip().split() 
         return sent
 
 
