@@ -195,6 +195,8 @@ if __name__ == '__main__':
 
     argparser.add_argument("--use_cuda", action='store_true', default=False, help="GPUs Flag (default False)")
 
+    argparser.add_argument("--shutdown", action='store_true', default=False, help="shutdown Flag (default False)")
+
     argparser.add_argument("--sent_limit", type=int, default=10000, help="Limit the number of lines to train")
 
     args = argparser.parse_args()
@@ -205,4 +207,5 @@ if __name__ == '__main__':
 
     topic_encoder.train()
 
-    os.system("sudo shutdown +1")
+    if args.shutdown:
+        os.system("sudo shutdown +1")
