@@ -5,12 +5,7 @@ Created on Sat Mar 10 17:31:21 2018
 
 @author: dtvo
 """
-import time
 import os
-import gzip
-import sys
-import pickle
-import math
 import random
 import torch
 import itertools
@@ -284,52 +279,50 @@ class Embeddings:
 
     @staticmethod
     def load_embs(fname):
-        embs = dict()
-        s = 0
-        V = 0
+        embs = []
+        wd2id = {}
         with open(fname, 'r') as f:
             for line in f:
                 p = line.strip().split()
                 if len(p) == 2:
-                    V = int(p[0])  # Vocabulary
-                    s = int(p[1])  # embeddings size
+                    continue
                 else:
-                    # assert len(p)== s+1
                     w = "".join(p[0])
-                    # print(p)
+                    wd2id[w] = len(wd2id)
                     e = [float(i) for i in p[1:]]
-                    embs[w] = np.array(e, dtype="float32")
-        #        assert len(embs) == V
-        return embs
+                    embs.append(e)
+        return wd2id, np.array(embs, dtype="float32")
 
     @staticmethod
     def get_W(emb_file, wsize, vocabx, scale=0.25):
         """
         Get word matrix. W[i] is the vector for word indexed by i
         """
-        print("Extracting pretrained embeddings:")
-        word_vecs = Embeddings.load_embs(emb_file)
-        print('\t%d pre-trained word embeddings' % (len(word_vecs)))
+        print("Extracting pre-trained embeddings:")
+        wd2id, word_vecs = Embeddings.load_embs(emb_file)
+        print('\t%d pre-trained embeddings' % (len(wd2id)))
         print('Mapping to vocabulary:')
         unk = 0
         part = 0
+        full = 0
         W = np.zeros(shape=(len(vocabx), wsize), dtype="float32")
         for word, idx in vocabx.items():
-            if idx == 0:
+            if word in [PADt, SOt, EOt, UNKt]:
                 continue
-            if word_vecs.get(word) is not None:
-                W[idx] = word_vecs.get(word)
+            if wd2id.get(word, -1) != -1:
+                W[idx] = word_vecs[wd2id[word]]
+                full += 1
             else:
-                if word_vecs.get(word.lower()) is not None:
-                    W[idx] = word_vecs.get(word.lower())
+                if wd2id.get(word.lower(), -1) != -1:
+                    W[idx] = word_vecs[wd2id[word.lower()]]
                     part += 1
                 else:
                     unk += 1
                     rvector = np.asarray(np.random.uniform(-scale, scale, (1, wsize)), dtype="float32")
                     W[idx] = rvector
-        print('\t%d randomly word vectors;' % unk)
-        print('\t%d partially word vectors;' % part)
-        print('\t%d pre-trained embeddings.' % (len(vocabx) - unk - part))
+        print('\t%d non-matching (random) vectors;' % unk)
+        print('\t%d partially matching (case-insensitive) vectors;' % part)
+        print('\t%d fully-matching (case-sensitive) word vectors.' % full)
         return W
 
     @staticmethod
@@ -341,176 +334,13 @@ class Embeddings:
         for word, idx in vocabx.iteritems():
             if idx == 0:
                 continue
-            rvector = np.asarray(np.random.uniform(-scale, scale, (1, wsize)), dtype="float32")
-            W[idx] = rvector
+            W[idx] = np.asarray(np.random.uniform(-scale, scale, (1, wsize)), dtype="float32")
         return W
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# ======================================== UTILITY FUNCTIONS =========================================================
-# --------------------------------------------------------------------------------------------------------------------
-class Timer:
-    @staticmethod
-    def asMinutes(s):
-        m = math.floor(s / 60)
-        s -= m * 60
-        return '%dm %ds' % (m, s)
-
-    @staticmethod
-    def asHours(s):
-        h = math.floor(s / 3600)
-        m = math.floor((s - h * 3600) / 60)
-        s -= (h * 3600 + m * 60)
-        return '%dh %dm %ds' % (h, m, s)
-
-    @staticmethod
-    def timeSince(since):
-        now = time.time()
-        s = now - since
-        return '%s' % (Timer.asMinutes(s))
-
-    @staticmethod
-    def timeEst(since, percent):
-        s = time.time() - since
-        es = s / (percent)
-        rs = es - s
-        return '%s (- %s)' % (Timer.asMinutes(s), Timer.asHours(rs))
-
-
-# Save and load hyper-parameters
-class SaveloadHP:
-    @staticmethod
-    def save(args, argfile='./results/model_args.pklz'):
-        """
-        argfile='model_args.pklz'
-        """
-        print("Writing hyper-parameters into %s" % argfile)
-        with gzip.open(argfile, "wb") as fout:
-            pickle.dump(args, fout, protocol=pickle.HIGHEST_PROTOCOL)
-
-    @staticmethod
-    def load(argfile='./results/model_args.pklz'):
-        print("Reading hyper-parameters from %s" % argfile)
-        with gzip.open(argfile, "rb") as fin:
-            args = pickle.load(fin)
-        return args
-
-
-class Progbar(object):
-    """Progbar class copied from keras (https://github.com/fchollet/keras/)
-
-    Displays a progress bar.
-    Small edit : added strict arg to update
-    # Arguments
-        target: Total number of steps expected.
-        interval: Minimum visual progress update interval (in seconds).
-    """
-
-    def __init__(self, target, width=30, verbose=1):
-        self.width = width
-        self.target = target
-        self.sum_values = {}
-        self.unique_values = []
-        self.start = time.time()
-        self.total_width = 0
-        self.seen_so_far = 0
-        self.verbose = verbose
-
-    def update(self, current, values=[], exact=[], strict=[]):
-        """
-        Updates the progress bar.
-        # Arguments
-            current: Index of current step.
-            values: List of tuples (name, value_for_last_step).
-                The progress bar will display averages for these values.
-            exact: List of tuples (name, value_for_last_step).
-                The progress bar will display these values directly.
-        """
-
-        for k, v in values:
-            if k not in self.sum_values:
-                self.sum_values[k] = [v * (current - self.seen_so_far),
-                                      current - self.seen_so_far]
-                self.unique_values.append(k)
-            else:
-                self.sum_values[k][0] += v * (current - self.seen_so_far)
-                self.sum_values[k][1] += (current - self.seen_so_far)
-        for k, v in exact:
-            if k not in self.sum_values:
-                self.unique_values.append(k)
-            self.sum_values[k] = [v, 1]
-
-        for k, v in strict:
-            if k not in self.sum_values:
-                self.unique_values.append(k)
-            self.sum_values[k] = v
-
-        self.seen_so_far = current
-
-        now = time.time()
-        if self.verbose == 1:
-            prev_total_width = self.total_width
-            sys.stdout.write("\b" * prev_total_width)
-            sys.stdout.write("\r")
-
-            numdigits = int(np.floor(np.log10(self.target))) + 1
-            barstr = '%%%dd/%%%dd [' % (numdigits, numdigits)
-            bar = barstr % (current, self.target)
-            prog = float(current) / self.target
-            prog_width = int(self.width * prog)
-            if prog_width > 0:
-                bar += ('=' * (prog_width - 1))
-                if current < self.target:
-                    bar += '>'
-                else:
-                    bar += '='
-            bar += ('.' * (self.width - prog_width))
-            bar += ']'
-            sys.stdout.write(bar)
-            self.total_width = len(bar)
-
-            if current:
-                time_per_unit = (now - self.start) / current
-            else:
-                time_per_unit = 0
-            eta = time_per_unit * (self.target - current)
-            info = ''
-            if current < self.target:
-                info += ' - ETA: %ds' % eta
-            else:
-                info += ' - %ds' % (now - self.start)
-            for k in self.unique_values:
-                if type(self.sum_values[k]) is list:
-                    info += ' - %s: %.4f' % (k,
-                                             self.sum_values[k][0] / max(1, self.sum_values[k][1]))
-                else:
-                    info += ' - %s: %s' % (k, self.sum_values[k])
-
-            self.total_width += len(info)
-            if prev_total_width > self.total_width:
-                info += ((prev_total_width - self.total_width) * " ")
-
-            sys.stdout.write(info)
-            sys.stdout.flush()
-
-            if current >= self.target:
-                sys.stdout.write("\n")
-
-        if self.verbose == 2:
-            if current >= self.target:
-                info = '%ds' % (now - self.start)
-                for k in self.unique_values:
-                    info += ' - %s: %.4f' % (k,
-                                             self.sum_values[k][0] / max(1, self.sum_values[k][1]))
-                sys.stdout.write(info + "\n")
-
-    def add(self, n, values=[]):
-        self.update(self.seen_so_far + n, values)
 
 
 if __name__ == "__main__":
     filename = "/media/data/restaurants/yelp_dataset/processed/extracted_rev/yelp_data_rev.pro.txt"
-    idf_file = "./data/idf.txt"
+    idf_file = "./extracted_data/idf.txt"
     vocab = Vocab(wl_th=None, wcutoff=5)
     vocab.build(filename, idf_file, firstline=False, limit=100000)
 
@@ -535,3 +365,6 @@ if __name__ == "__main__":
         inp_tensor = data_tensor[:, 0, :]
         noise_tensor = data_tensor[:, 1:, :]
         break
+
+    scale = np.sqrt(3.0 / 100)
+    trained_vectors = Embeddings.get_W("extracted_data/extracted_data/w2v_yelp100.pro.vec", 100, vocab.w2i, scale)

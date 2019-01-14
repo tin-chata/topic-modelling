@@ -15,10 +15,9 @@ class Embs(nn.Module):
     """
     This module take (characters or words) indices as inputs and outputs (characters or words) embedding
     """
-
     def __init__(self, HPs):
         super(Embs, self).__init__()
-        [size, dim, pre_embs, drop_rate, zero_padding] = HPs
+        [size, dim, pre_embs, drop_rate, zero_padding, grad_flag] = HPs
         self.zero_padding = zero_padding
         self.embeddings = nn.Embedding(size, dim, padding_idx=0)
         if pre_embs is not None:
@@ -26,7 +25,7 @@ class Embs(nn.Module):
         else:
             self.embeddings.weight.data.copy_(torch.from_numpy(self.random_embedding(size, dim)))
 
-        # self.embeddings.weight.requires_grad = False # fix word embeddings
+        self.embeddings.weight.requires_grad = grad_flag  # fix word embeddings
         self.drop = nn.Dropout(drop_rate)
 
     def get_embs(self, inputs, auxiliary_embs=None):
@@ -70,9 +69,9 @@ class Autoencoder(nn.Module):
 
     def __init__(self, HPs):
         super(Autoencoder, self).__init__()
-        [emb_size, emb_dim, pre_embs, emb_drop_rate, emb_zero_padding, nn_out_dim] = HPs
+        [emb_size, emb_dim, pre_embs, emb_drop_rate, emb_zero_padding, grad_flag, nn_out_dim] = HPs
 
-        emb_HPs = [emb_size, emb_dim, pre_embs, emb_drop_rate, emb_zero_padding]
+        emb_HPs = [emb_size, emb_dim, pre_embs, emb_drop_rate, emb_zero_padding, grad_flag]
         self.emb_layer = Embs(emb_HPs)
         self.attention = nn.Bilinear(emb_dim, emb_dim, 1)
         self.norm_attention = nn.Softmax(1)
@@ -170,7 +169,7 @@ if __name__ == "__main__":
     Data2tensor.set_randseed(1234)
     use_cuda = torch.cuda.is_available()
     filename = "/media/data/restaurants/yelp_dataset/processed/extracted_rev/yelp_data_rev.pro.txt"
-    idf_file = "./data/idf.txt"
+    idf_file = "./extracted_data/idf.txt"
 
     vocab = Vocab(wl_th=None, wcutoff=5)
     vocab.build(filename, idf_file=idf_file, firstline=False, limit=100000)
@@ -201,8 +200,9 @@ if __name__ == "__main__":
     pre_embs = None
     emb_drop_rate = 0.5
     emb_zero_padding = False
+    grad_flag = True
     nn_out_dim = 10
-    HPs = [emb_size, emb_dim, pre_embs, emb_drop_rate, emb_zero_padding, nn_out_dim]
+    HPs = [emb_size, emb_dim, pre_embs, emb_drop_rate, emb_zero_padding, grad_flag, nn_out_dim]
 
     topic_encoder = Autoencoder(HPs=HPs)
     emb_sent, trans_sent, emb_noise = topic_encoder(inp_tensor, noise_tensor)

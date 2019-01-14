@@ -25,7 +25,7 @@ class Autoencoder_model(object):
                                                se_words=self.args.start_end)
 
         word_HPs = [len(self.args.vocab.w2i), self.args.word_dim, self.args.word_pretrained, self.args.word_drop_rate,
-                    self.args.word_zero_padding, self.args.word_nn_out_dim]
+                    self.args.word_zero_padding, self.args.grad_flag, self.args.word_nn_out_dim]
 
         self.model = Autoencoder(HPs=word_HPs).to(self.device)
 
@@ -169,6 +169,8 @@ if __name__ == '__main__':
     argparser.add_argument("--word_zero_padding", action='store_true', default=False,
                            help="Flag to set all padding tokens to zero during training at word level")
 
+    argparser.add_argument("--grad_flag", action='store_false', default=True, help="Gradient emb flag (default True)")
+
     argparser.add_argument("--word_nn_out_dim", type=int, default=15, help="Word-level neural network dimension")
 
     argparser.add_argument("--optimizer", type=str, default="ADAM", help="Optimized method (adagrad, sgd, ...)")
@@ -191,7 +193,7 @@ if __name__ == '__main__':
 
     argparser.add_argument('--model_args', help='Trained argument filename', default="tpmd.args", type=str)
 
-    argparser.add_argument("--use_cuda", action='store_true', default=False, help="GPUs Flag (default True)")
+    argparser.add_argument("--use_cuda", action='store_true', default=False, help="GPUs Flag (default False)")
 
     argparser.add_argument("--sent_limit", type=int, default=10000, help="Limit the number of lines to train")
 
@@ -202,3 +204,5 @@ if __name__ == '__main__':
     topic_encoder = Autoencoder_model(args)
 
     topic_encoder.train()
+
+    os.system("sudo shutdown +1")
