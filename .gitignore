@@ -5,6 +5,7 @@ backup/
 extracted_data/
 
 # Ignore MacOS folders and files
+.ipynb_checkpoints/
 .idea/
 __pycache__/
 .DS_Store

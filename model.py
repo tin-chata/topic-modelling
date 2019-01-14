@@ -9,7 +9,7 @@ import argparse
 import numpy as np
 import torch.optim as optim
 from core_nns import Autoencoder
-from data_utils import Progbar, Timer, SaveloadHP
+from other_utils import Progbar, Timer, SaveloadHP
 from data_utils import Vocab, Data2tensor, Txtfile, seqPAD, Embeddings, PADt
 
 Data2tensor.set_randseed(1234)

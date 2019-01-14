@@ -6,9 +6,6 @@ Created on Sat Mar 10 17:41:43 2018
 import torch
 import numpy as np
 import torch.nn as nn
-START_TAG = -2
-STOP_TAG = -1
-# PAD_TAG = -1
 
 
 class Embs(nn.Module):
