@@ -122,9 +122,6 @@ class Vocab(object):
             if len(x_batch) == batch_size:
                 yield x_batch
                 x_batch = []
-
-            if type(x[0]) == tuple:
-                x = list(zip(*x))
             x_batch += [x]
 
         # if len(x_batch) != 0:
