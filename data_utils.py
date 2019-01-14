@@ -5,6 +5,7 @@ Created on Sat Mar 10 17:31:21 2018
 
 @author: dtvo
 """
+import re
 import os
 import random
 import torch
@@ -165,8 +166,8 @@ class Txtfile(object):
     def process_sent(sent):
         sent = sent.strip().split()
         # TODO: add a text-preprocessor at both word-level and character-level to improve performance
-        # sent = re.sub('[^0-9a-zA-Z ]+', '', sent)
-        # sent = sent.lower()
+        sent = re.sub('[^a-zA-Z ]+', '', sent)
+        sent = sent.lower()
         return sent
 
 

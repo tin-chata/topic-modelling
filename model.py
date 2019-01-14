@@ -205,4 +205,4 @@ if __name__ == '__main__':
 
     topic_encoder.train()
 
-    os.system("sudo shutdown +1")
+    # os.system("sudo shutdown +1")
