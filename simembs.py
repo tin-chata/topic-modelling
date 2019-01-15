@@ -49,9 +49,9 @@ if __name__ == "__main__":
     """
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--emb_file', default='extracted_data/extracted_data/word_emb.txt', type=str)
-    parser.add_argument('--topic_file', default='extracted_data/extracted_data/dtopic_emb.txt', type=str)
-    parser.add_argument('--N', default=40, type=int)
+    parser.add_argument('--emb_file', default='extracted_data/word_emb.txt', type=str)
+    parser.add_argument('--topic_file', default='extracted_data/dtopic_emb.txt', type=str)
+    parser.add_argument('--N', default=100, type=int)
     args = parser.parse_args()
     ivocab, W = load_embs(args.emb_file)
     cosine_distance(W, ivocab, args.topic_file, args.N)

@@ -12,6 +12,7 @@ import torch
 import itertools
 import numpy as np
 from collections import Counter
+from other_utils import sw_set
 
 # ----------------------
 #    Word symbols
@@ -53,6 +54,15 @@ class Vocab(object):
             wl = max(wl, len(sent))
 
         wlst = [PADt, SOt, EOt, UNKt] + [x for x, y in self.wcnt.most_common() if y >= self.wcutoff]
+        print("Extracting vocabulary: %d total input samples" % count)
+        print("\t%d total words" % sum(self.wcnt.values()))
+        print("\t%d unique words" % len(self.wcnt))
+        print("\t%d unique words appearing at least %d times" % (len(wlst) - 4, self.wcutoff))
+        for wd in sw_set:
+            if wd in wlst:
+                wlst.pop(wlst.index(wd))
+        print("\t%d unique words appearing at least %d times after removing stopwords" % (len(wlst) - 4, self.wcutoff))
+
         self.w2i = dict([(y, x) for x, y in enumerate(wlst)])
         self.i2w = dict([(x, y) for x, y in enumerate(wlst)])
         self.wl = wl if self.wl is None else min(wl, self.wl)
@@ -64,11 +74,6 @@ class Vocab(object):
             for wd in self.idf:
                 self.idf[wd] = np.log(self.nodocs / self.idf[wd])
             self.writeidf(idf_file)
-
-        print("Extracting vocabulary: %d total input samples" % count)
-        print("\t%d total words" % sum(self.wcnt.values()))
-        print("\t%d unique words" % len(self.wcnt))
-        print("\t%d unique words appearing at least %d times" % (len(self.w2i)-4, self.wcutoff))
 
     def writeidf(self, fname):
         with open(fname, "w") as f:
@@ -364,5 +369,5 @@ if __name__ == "__main__":
         noise_tensor = data_tensor[:, 1:, :]
         break
 
-    scale = np.sqrt(3.0 / 100)
-    trained_vectors = Embeddings.get_W("extracted_data/extracted_data/w2v_yelp100.pro.vec", 100, vocab.w2i, scale)
+    # scale = np.sqrt(3.0 / 100)
+    # trained_vectors = Embeddings.get_W("extracted_data/w2v_yelp100.pro.vec", 100, vocab.w2i, scale)
