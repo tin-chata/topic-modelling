@@ -113,12 +113,35 @@ class Autoencoder(nn.Module):
         emb_attsent = torch.bmm(alpha_norm.transpose(1, 2), emb_word)
         # emb_attsent = [batch_size, 1, emb_dim] <------
         # alpha_norm.transpose(1, 2) = [batch_size, 1, sent_length] dot emb_word = [batch_size, sent_length, emb_dim]
-        emb_topic = self.encoder(emb_attsent.squeeze())
+        emb_topic = self.encoder(emb_attsent.squeeze(1))
         topic_class = self.norm_layer(emb_topic)
         # emb_topic = topic_class = [batch_size, nn_out_dim]
         trans_sent = self.decoder(topic_class)
         # trans_sent = [batch_size, emb_dim]
-        return emb_attsent.squeeze(), trans_sent
+        return emb_attsent.squeeze(1), trans_sent
+
+    def inference(self, inputs, auxiliary_embs=None):
+        # inputs = [batch_size, sent_length]
+        # auxiliary_embs = [batch_size, sent_length, aux_dim]
+        emb_word = self.emb_layer(inputs, auxiliary_embs)
+        # emb_word = [batch_size, sent_length, emb_dim]
+        emb_sent = emb_word.mean(dim=1, keepdim=True)
+        # emb_sent = [batch_size, 1, emb_dim]
+        sent_length = emb_word.size(1)
+        emb_sent_ex = emb_sent.expand(-1, sent_length, -1).contiguous()
+        # emb_sent_ex = [batch_size, sent_length, emb_dim]
+        alpha_score = self.attention(emb_word, emb_sent_ex)
+        # alpha_score = [batch_size, sent_length, 1]
+        alpha_norm = self.norm_attention(alpha_score)
+        # alpha_norm = [batch_size, sent_length, 1]
+        emb_attsent = torch.bmm(alpha_norm.transpose(1, 2), emb_word)
+        # emb_attsent = [batch_size, 1, emb_dim] <------
+        # alpha_norm.transpose(1, 2) = [batch_size, 1, sent_length] dot emb_word = [batch_size, sent_length, emb_dim]
+        emb_topic = self.encoder(emb_attsent.squeeze(1))
+        topic_class = self.norm_layer(emb_topic)
+        # emb_topic = topic_class = [batch_size, nn_out_dim]
+        label_prob, label_pred = emb_topic.data.topk(emb_topic.size(1))
+        return label_prob, label_pred
 
     def get_noise_features(self, noises, auxiliary_embs=None):
         # noises = [batch_size, sampling, sent_length]
@@ -151,7 +174,7 @@ class Autoencoder(nn.Module):
         y_score = (emb_sent*trans_sent).sum(-1)
         # y_score = [batch_size]
         batch_size, emb_dim = trans_sent.size()
-        pred_score = torch.bmm(emb_noise, trans_sent.view(batch_size, emb_dim, 1)).squeeze()
+        pred_score = torch.bmm(emb_noise, trans_sent.view(batch_size, emb_dim, 1)).squeeze(-1)
         # pred_score = [batch_size, sampling]
         distance = 1 + pred_score - y_score.view(-1, 1)
         abs_distance = torch.max(distance, torch.zeros_like(distance))

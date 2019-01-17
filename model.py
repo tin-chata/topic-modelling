@@ -82,6 +82,16 @@ class Autoencoder_model(object):
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
 
+    def predict(self, rv):
+        pro_rv = Txtfile.process_sent(rv)
+        rv_id = self.word2idx(pro_rv)
+        padded_inp, _ = seqPAD.pad_sequences([rv_id], pad_tok=self.args.vocab.w2i[PADt])
+        inputs = Data2tensor.idx2tensor(padded_inp, torch.long, self.device)
+        self.model.eval()
+        with torch.no_grad():
+            label_prob, label_pred = self.model.inference(inputs)
+            return label_prob, label_pred
+
     def train(self):
         train_data = Txtfile(self.args.train_file, firstline=False, word2idx=self.word2idx, limit=self.args.sent_limit)
         model_filename = os.path.join(args.model_dir, self.args.model_file)
