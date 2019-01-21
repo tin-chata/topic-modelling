@@ -64,7 +64,7 @@ class Autoencoder(nn.Module):
         - last attentional hidden features
     """
 
-    def __init__(self, HPs):
+    def __init__(self, HPs, kmean_file=None):
         super(Autoencoder, self).__init__()
         [emb_size, emb_dim, pre_embs, emb_drop_rate, emb_zero_padding, grad_flag, nn_out_dim] = HPs
 
@@ -73,9 +73,23 @@ class Autoencoder(nn.Module):
         self.attention = nn.Bilinear(emb_dim, emb_dim, 1)
         self.norm_attention = nn.Softmax(1)
 
-        self.encoder = nn.Linear(emb_dim, nn_out_dim)
+        self.encoder = nn.Linear(emb_dim, nn_out_dim, bias=False)
         self.norm_layer = nn.Softmax(-1)
-        self.decoder = nn.Linear(nn_out_dim, emb_dim)
+        self.decoder = nn.Linear(nn_out_dim, emb_dim, bias=False)
+        if kmean_file is not None:
+            # kmean_centroids = [nn_out_dim, emb_dim]
+            kmean_centroids = Autoencoder.load_weight_init(kmean_file)
+            # encoder.weight = [nn_out_dim, emb_dim]
+            self.encoder.weight.data.copy_(torch.from_numpy(kmean_centroids))
+            # decoder.weight = [emb_dim, nn_out_dim]
+            self.decoder.weight.data.copy_(torch.from_numpy(kmean_centroids.transpose()))
+
+
+    @staticmethod
+    def load_weight_init(kmean_file):
+        kmean_centroids = np.loadtxt(kmean_file, dtype="float32")
+        # kmean_centroids = [topics, emb_dim]
+        return kmean_centroids
 
     def forward(self, inputs, noises, aux_inputs=None, aux_noises=None):
         emb_sent, trans_sent = self.get_attinput_features(inputs, aux_inputs)
@@ -140,7 +154,7 @@ class Autoencoder(nn.Module):
         emb_topic = self.encoder(emb_attsent.squeeze(1))
         topic_class = self.norm_layer(emb_topic)
         # emb_topic = topic_class = [batch_size, nn_out_dim]
-        label_prob, label_pred = emb_topic.data.topk(emb_topic.size(1))
+        label_prob, label_pred = topic_class.data.topk(emb_topic.size(1))
         return label_prob, label_pred
 
     def get_noise_features(self, noises, auxiliary_embs=None):
@@ -154,7 +168,9 @@ class Autoencoder(nn.Module):
 
     def get_embs(self):
         word_emb = self.emb_layer.embeddings.weight.data.cpu().numpy()
+        # enc_emb = [nn_out_dim, emb_dim]
         enc_emb = self.encoder.weight.data.cpu().numpy()
+        # dec_emb = [emb_dim, nn_out_dim]
         dec_emb = self.decoder.weight.data.cpu().numpy()
         return word_emb, enc_emb, dec_emb
 
@@ -216,7 +232,7 @@ if __name__ == "__main__":
         break
 
     emb_size = len(vocab.w2i)
-    emb_dim = 50
+    emb_dim = 100
     pre_embs = None
     emb_drop_rate = 0.5
     emb_zero_padding = False
@@ -224,7 +240,7 @@ if __name__ == "__main__":
     nn_out_dim = 10
     HPs = [emb_size, emb_dim, pre_embs, emb_drop_rate, emb_zero_padding, grad_flag, nn_out_dim]
 
-    topic_encoder = Autoencoder(HPs=HPs)
+    topic_encoder = Autoencoder(HPs=HPs, kmean_file='./kmean_10centroids.txt')
     emb_sent, trans_sent, emb_noise = topic_encoder(inp_tensor, noise_tensor)
 
     batch_loss = topic_encoder.batchHingeLoss(emb_sent, trans_sent, emb_noise)

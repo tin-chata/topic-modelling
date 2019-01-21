@@ -58,6 +58,8 @@ if __name__ == '__main__':
          "complaints once they started to get more known and got busy their service started to suck and their portion " \
          "sizes got cut in half i have a huge problem with paying more for way less food the last time i went there i "
 
-    label_prob, label_pred = inference(topic_encoder.model, rv, auxiliary_embs=None)
+    # label_prob, label_pred = inference(topic_encoder.model, rv, auxiliary_embs=None)
+
+    label_prob, label_pred = topic_encoder.predict(rv)
 
 

@@ -63,7 +63,7 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--idf_file', default='extracted_data/idf.txt', type=str)
-    parser.add_argument('--emb_file', default='extracted_data/word_emb.txt', type=str)
+    parser.add_argument('--emb_file', default='extracted_data/w2v_yelp100.pro.vec', type=str)
     parser.add_argument('--topic_file', default='extracted_data/dtopic_emb.txt', type=str)
     parser.add_argument('--N', default=50, type=int)
     args = parser.parse_args()

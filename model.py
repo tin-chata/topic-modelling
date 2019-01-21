@@ -27,7 +27,7 @@ class Autoencoder_model(object):
         word_HPs = [len(self.args.vocab.w2i), self.args.word_dim, self.args.word_pretrained, self.args.word_drop_rate,
                     self.args.word_zero_padding, self.args.grad_flag, self.args.word_nn_out_dim]
 
-        self.model = Autoencoder(HPs=word_HPs).to(self.device)
+        self.model = Autoencoder(HPs=word_HPs, kmean_file=self.args.kmean_file).to(self.device)
 
         if args.optimizer.lower() == "adamax":
             self.optimizer = optim.Adamax(self.model.parameters(), lr=self.args.lr)
@@ -119,9 +119,9 @@ class Autoencoder_model(object):
         for i in range(enc_emb.shape[0]):
             id2topic[i] = "topic_%d" % i
 
-        Embeddings.save_embs(id2topic, dec_emb.transpose(), os.path.join(args.model_dir,self.args.dtopic_emb_file))
-        Embeddings.save_embs(id2topic, enc_emb, os.path.join(args.model_dir,self.args.etopic_emb_file))
-        Embeddings.save_embs(self.args.vocab.i2w, word_emb, os.path.join(args.model_dir,self.args.tuned_word_emb_file))
+        Embeddings.save_embs(id2topic, dec_emb.transpose(), os.path.join(args.model_dir, self.args.dtopic_emb_file))
+        Embeddings.save_embs(id2topic, enc_emb, os.path.join(args.model_dir, self.args.etopic_emb_file))
+        Embeddings.save_embs(self.args.vocab.i2w, word_emb, os.path.join(args.model_dir, self.args.tuned_word_emb_file))
         return
 
     @staticmethod
@@ -134,7 +134,7 @@ class Autoencoder_model(object):
         idf_file = os.path.join(args.model_dir, args.idf_file)
         vocab.build(fname=args.train_file, idf_file=idf_file, firstline=False, limit=args.sent_limit)
         args.vocab = vocab
-        if len(args.word_emb_file) != 0:
+        if args.word_emb_file is not None:
             scale = np.sqrt(3.0 / args.word_dim)
             args.word_pretrained = Embeddings.get_W(args.word_emb_file, args.word_dim, vocab.w2i, scale)
         else:
@@ -169,7 +169,9 @@ if __name__ == '__main__':
 
     argparser.add_argument("--idf_file", type=str, help="tfidf file", default="idf.txt")
 
-    argparser.add_argument("--word_emb_file", type=str, help="Word embedding file", default="")
+    argparser.add_argument("--word_emb_file", type=str, help="Word embedding file", default=None)
+
+    argparser.add_argument("--kmean_file", type=str, help="Kmean file", default=None)
 
     argparser.add_argument("--word_dim", type=int, default=100, help="Word embedding size")
 
